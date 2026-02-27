@@ -7,7 +7,7 @@ var app = express();
 // Add static files location
 app.use(express.static("static"));
 
-
+//get
 const db = require('./services/db');
 
 // Create a route for root - /
