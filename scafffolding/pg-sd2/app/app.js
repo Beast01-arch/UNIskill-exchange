@@ -1,49 +1,85 @@
-// Import express.js
+const path = require("path");
 const express = require("express");
+const session = require("express-session");
+const flash = require("connect-flash");
+const methodOverride = require("method-override");
 
-// Create express app
-var app = express();
+const homeRoutes = require("./routes/home");
+const authRoutes = require("./routes/auth");
+const skillsRoutes = require("./routes/skills");
+const exchangeRoutes = require("./routes/exchange");
+const profileRoutes = require("./routes/profile");
+const orgRoutes = require("./routes/org");
+const adminRoutes = require("./routes/admin");
 
-// Add static files location
-app.use(express.static("static"));
+const app = express();
 
-//get
-const db = require('./services/db');
+app.set("view engine", "pug");
+app.set("views", path.join(__dirname, "../views"));
+app.locals.basedir = path.join(__dirname, "../views");
 
-// Create a route for root - /
-app.get("/", function(req, res) {
-    res.send("Hello world!");
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(methodOverride("_method"));
+app.use(express.static(path.join(__dirname, "../static")));
+
+app.use(
+  session({
+    name: "uniskill.sid",
+    secret: process.env.SESSION_SECRET || "uniskill-exchange-session-secret",
+    resave: false,
+    saveUninitialized: false,
+    rolling: true,
+    cookie: {
+      maxAge: 1000 * 60 * 60 * 6,
+      httpOnly: true,
+      sameSite: "lax",
+      secure: false,
+    },
+  })
+);
+
+app.use(flash());
+
+app.use((req, res, next) => {
+  res.locals.currentUser = req.session && req.session.user ? req.session.user : null;
+  res.locals.currentPath = req.originalUrl ? req.originalUrl.split("?")[0] : req.path;
+  res.locals.flash = {
+    success: req.flash("success"),
+    error: req.flash("error"),
+    warning: req.flash("warning"),
+    info: req.flash("info"),
+  };
+  res.locals.unreadNotificationCount = 0;
+  next();
 });
 
-// Create a route for testing the db
-// Create a route for testing the db
-app.get("/db_test", function(req, res) {
-    // Assumes a table called test_table exists in your database
-    sql = 'select * from test_table';
-    db.query(sql).then(results => {
-        console.log(results);
-        res.send(results)
-    });
+app.use("/", homeRoutes);
+app.use("/auth", authRoutes);
+app.use("/skills", skillsRoutes);
+app.use("/exchanges", exchangeRoutes);
+app.use("/profile", profileRoutes);
+app.use("/org", orgRoutes);
+app.use("/admin", adminRoutes);
+
+app.use((req, res) => {
+  res.status(404).render("pages/404", {
+    title: "Page not found",
+    pageClass: "page-404",
+  });
 });
 
-// Create a route for /goodbye
-// Responds to a 'GET' request
-app.get("/goodbye", function(req, res) {
-    res.send("Goodbye world!");
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(err.status || 500).render("pages/error", {
+    title: "Application error",
+    pageClass: "page-error",
+    errorMessage: err.message || "Something went wrong while loading UniSkill Exchange.",
+  });
 });
 
-// Create a dynamic route for /hello/<name>, where name is any value provided by user
-// At the end of the URL
-// Responds to a 'GET' request
-app.get("/hello/:name", function(req, res) {
-    // req.params contains any parameters in the request
-    // We can examine it in the console for debugging purposes
-    console.log(req.params);
-    //  Retrieve the 'name' parameter and use it in a dynamically generated page
-    res.send("Hello " + req.params.name);
+app.listen(3000, function () {
+  console.log("Server running at http://127.0.0.1:3000/");
 });
 
-// Start server on port3000
-app.listen(3000,function(){
-    console.log(`Server running at http://127.0.0.1:3000/`);
-});
+module.exports = app;
