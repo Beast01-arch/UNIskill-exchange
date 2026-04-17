@@ -1,0 +1,31 @@
+{
+  "name": "uniskill-exchange",
+  "version": "1.0.0",
+  "description": "UniSkill Exchange - free skill exchange platform for individuals and organisations",
+  "main": "index.js",
+  "scripts": {
+    "start": "supervisor -e 'js,pug,css' index.js",
+    "dev": "supervisor -e 'js,pug,css' index.js",
+    "test": "echo \"No automated tests configured\""
+  },
+  "keywords": [
+    "express",
+    "pug",
+    "mysql",
+    "software-engineering",
+    "skill-exchange"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "connect-flash": "^0.1.1",
+    "dotenv": "^10.0.0",
+    "express": "^4.21.1",
+    "express-session": "^1.18.1",
+    "method-override": "^3.0.0",
+    "mysql2": "^3.11.5",
+    "pug": "^3.0.3",
+    "supervisor": "^0.12.0"
+  }
+}
