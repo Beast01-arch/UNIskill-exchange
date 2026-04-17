@@ -1,0 +1,27 @@
+extends /layouts/base
+
+block content
+  section.auth-shell
+    .shell.auth-shell__grid
+      .auth-panel.auth-panel--intro.reveal
+        span.section-tag Welcome back
+        h1 Log in to manage your exchanges.
+        p Continue to your dashboard, respond to requests, review notifications, update your profile, and keep your learning network moving.
+        ul.auth-benefits
+          li Secure timed session with logout support
+          li Exchange acceptance, rejection, completion, and rating flows
+          li Organisation workspace and moderation visibility for admins
+      .auth-panel.reveal
+        form.form-card(action="/auth/login" method="POST")
+          h2 Log in
+          .form-group
+            label(for="email") Email address
+            input#email(type="email" name="email" required value=values && values.email ? values.email : '')
+          .form-group
+            label(for="password") Password
+            input#password(type="password" name="password" required)
+          button.btn.btn-primary.btn-block(type="submit") Log in
+          p.form-help Need an account?
+            a(href="/auth/register") Register here
+          p.form-help Need a new verification link?
+            a(href=`/auth/resend-verification${values && values.email ? `?email=${encodeURIComponent(values.email)}` : ''}`) Resend verification
