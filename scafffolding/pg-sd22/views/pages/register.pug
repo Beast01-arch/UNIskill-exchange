@@ -1,0 +1,31 @@
+extends /layouts/base
+
+block content
+  section.auth-shell
+    .shell.auth-shell__grid
+      .auth-panel.auth-panel--intro.reveal
+        span.section-tag Create your account
+        h1 Join a platform built for practical learning.
+        p Register to publish offers, ask for help, schedule exchanges, and build a visible reputation without any payment flow.
+        ul.auth-benefits
+          li Secure password hashing with verified email flow
+          li Public profile with trust, badges, and privacy controls
+          li Exchange requests, scheduling, and in-app notifications
+      .auth-panel.reveal
+        form.form-card(action="/auth/register" method="POST")
+          h2 Create account
+          .form-group
+            label(for="display_name") Display name
+            input#display_name(type="text" name="display_name" maxlength="120" required value=values && values.display_name ? values.display_name : '')
+          .form-group
+            label(for="email") Email address
+            input#email(type="email" name="email" required value=values && values.email ? values.email : '')
+          .form-group
+            label(for="password") Password
+            input#password(type="password" name="password" minlength="8" required)
+          .form-group
+            label(for="confirm_password") Confirm password
+            input#confirm_password(type="password" name="confirm_password" minlength="8" required)
+          button.btn.btn-primary.btn-block(type="submit") Register
+          p.form-help Already have an account?
+            a(href="/auth/login") Log in here
