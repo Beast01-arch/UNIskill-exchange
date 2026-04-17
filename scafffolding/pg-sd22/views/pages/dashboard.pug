@@ -1,0 +1,157 @@
+extends /layouts/base
+include /partials/skill-card
+
+block content
+  section.section
+    .shell.dashboard-head
+      .dashboard-hero.reveal
+        .dashboard-hero__identity
+          .avatar-circle.avatar-circle--xl= profile.avatar_initial || profile.display_name.charAt(0).toUpperCase()
+          .dashboard-hero__copy
+            span.section-tag Personal workspace
+            h1= `Welcome back, ${profile.display_name}`
+            p= profile.headline || 'Shape your profile, publish skills, and build trusted learning exchanges.'
+            .hero-meta
+              span= profile.location || 'Location not set'
+              span= profile.privacy_level
+              if profile.email_verified
+                span.verified-badge Email verified
+        .dashboard-hero__actions
+          a.btn.btn-primary(href="/skills/new") Add a skill
+          a.btn.btn-secondary(href="/profile/edit") Edit profile
+      .dashboard-overview
+        .overview-card.reveal
+          span.label Reputation
+          strong #{Number(profile.avg_rating || 0).toFixed(1)} / 5
+          small #{profile.rating_count} ratings received
+        .overview-card.reveal
+          span.label Verified badges
+          strong= profile.verified_badges || 0
+          small Passed skill tests
+        .overview-card.reveal
+          span.label Memberships
+          strong= memberships.length
+          small Active organisation workspaces
+        .overview-card.reveal
+          span.label Account trust
+          strong= profile.email_verified ? 'Verified' : 'Pending'
+          small Email confirmation status
+
+  section.section.section-alt
+    .shell.dashboard-grid
+      .dashboard-main
+        .panel.reveal
+          .panel__heading
+            h2 Your skill listings
+            a.btn.btn-ghost(href="/skills/new") New listing
+          if mySkills.length
+            .skills-grid.skills-grid--compact
+              each skill in mySkills
+                +skillCard(skill)
+          else
+            .empty-state
+              h3 No skills published yet
+              p Publish your first offer or learning request to appear in the network.
+        .panel.reveal
+          .panel__heading
+            h2 Recent exchanges
+            a.btn.btn-ghost(href="/exchanges") View all
+          if myExchanges.length
+            .list-cards
+              each exchange in myExchanges
+                article.list-card
+                  .list-card__header
+                    h3= exchange.skill_title
+                    span(class=`status-badge status-${String(exchange.status).toLowerCase()}`)= exchange.status
+                  p= `With ${exchange.counterpart_name}`
+                  small= new Date(exchange.created_at).toLocaleString()
+          else
+            .empty-state
+              h3 No exchanges yet
+              p Send a request or publish a skill to begin your first exchange.
+        if currentUser && currentUser.is_admin
+          .panel.reveal
+            .panel__heading
+              h2 Admin moderation queue
+              span.panel__meta= `${adminReports.length} open cases`
+            if adminReports.length
+              .moderation-list
+                each report in adminReports
+                  article.moderation-card
+                    .moderation-card__top
+                      div
+                        h3= report.reason
+                        p= `Reporter: ${report.reporter_name}`
+                      span(class=`status-badge status-${String(report.status).toLowerCase()}`)= report.status
+                    p= report.notes || 'No additional notes provided.'
+                    p.muted
+                      if report.target_type === 'USER'
+                        | Target user: #{report.target_user_name || 'Unknown user'}
+                      else
+                        | Target skill: #{report.target_skill_title || 'Unknown listing'}
+                    form(action=`/admin/reports/${report.report_id}/review?_method=PUT` method="POST" class="inline-form-grid")
+                      .form-group
+                        label Action
+                        select(name="action")
+                          option(value="NONE") NONE
+                          option(value="REMOVE_LISTING") REMOVE_LISTING
+                          option(value="SUSPEND_USER") SUSPEND_USER
+                      .form-group
+                        label Admin notes
+                        textarea(name="admin_notes" rows="3")
+                      button.btn.btn-primary(type="submit") Resolve report
+            else
+              .empty-state
+                h3 Nothing to moderate
+                p Open reports will appear here for review.
+      aside.dashboard-side
+        .panel.reveal
+          .panel__heading
+            h2 Notifications
+            if notifications.length
+              form(action="/profile/notifications/read-all?_method=PUT" method="POST")
+                button.btn.btn-ghost(type="submit") Mark all read
+          if notifications.length
+            .notification-list
+              each notification in notifications
+                article.notification-item(class=Number(notification.is_read) === 1 ? 'is-read' : 'is-unread')
+                  .notification-item__copy
+                    strong= notification.type.replace(/_/g, ' ')
+                    p= notification.message
+                    small= new Date(notification.created_at).toLocaleString()
+                  if Number(notification.is_read) === 0
+                    form(action=`/profile/notifications/${notification.notification_id}/read?_method=PUT` method="POST")
+                      button.btn.btn-ghost(type="submit") Read
+          else
+            .empty-state
+              h3 No notifications yet
+              p Activity updates will appear here.
+        .panel.reveal
+          .panel__heading
+            h2 Profile summary
+            a.btn.btn-ghost(href=`/profile/${profile.user_id}`) Public view
+          p= profile.bio || 'No biography added yet.'
+          ul.meta-list
+            li
+              strong Location
+              span= profile.location || 'Not set'
+            li
+              strong Privacy
+              span= profile.privacy_level
+            li
+              strong Member since
+              span= new Date(profile.created_at).toLocaleDateString()
+        .panel.reveal
+          .panel__heading
+            h2 Organisations
+            a.btn.btn-ghost(href="/org") Manage
+          if memberships.length
+            ul.meta-list
+              each membership in memberships
+                li
+                  strong= membership.org_name
+                  span= membership.role
+          else
+            .empty-state
+              h3 No organisations joined
+              p Create a workspace or accept an invite to collaborate as a team.
