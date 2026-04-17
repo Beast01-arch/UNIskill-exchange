@@ -1,0 +1,53 @@
+extends /layouts/base
+
+block content
+  section.section
+    .shell.form-shell
+      .section-heading.reveal
+        span.section-tag Skill publishing
+        h1= submitLabel
+        p Add a professional listing for a skill you offer or a skill you want to learn.
+      form.form-card.reveal(action=formAction method="POST")
+        if formMethod && formMethod !== 'POST'
+          input(type="hidden" name="_method" value=formMethod)
+        .form-grid
+          .form-group
+            label(for="title") Title
+            input#title(type="text" name="title" maxlength="180" required value=skill.title || '')
+          .form-group
+            label(for="category_id") Category
+            select#category_id(name="category_id" required)
+              option(value="") Select category
+              each category in categories
+                option(value=category.category_id selected=skill.category_id === category.category_id)= category.name
+          .form-group
+            label(for="skill_type") Listing type
+            select#skill_type(name="skill_type" required)
+              option(value="OFFER" selected=skill.skill_type === 'OFFER') OFFER
+              option(value="REQUEST" selected=skill.skill_type === 'REQUEST') REQUEST
+          .form-group
+            label(for="mode") Delivery mode
+            select#mode(name="mode" required)
+              option(value="ONLINE" selected=skill.mode === 'ONLINE') ONLINE
+              option(value="IN_PERSON" selected=skill.mode === 'IN_PERSON') IN PERSON
+              option(value="BOTH" selected=skill.mode === 'BOTH') BOTH
+          .form-group
+            label(for="org_id") Organisation scope
+            select#org_id(name="org_id")
+              option(value="") Personal listing
+              each org in organisations
+                option(value=org.org_id selected=skill.org_id === org.org_id)= `${org.org_name} (${org.role})`
+          .form-group
+            label(for="tags") Tags
+            input#tags(type="text" name="tags" value=skill.tags || '' placeholder="e.g. mentoring, javascript, beginner")
+        .form-group
+          label(for="description") Description
+          textarea#description(name="description" rows="8" required)= skill.description || ''
+        .form-help
+          if skill.skill_type === 'REQUEST'
+            | For learning requests, describe your goal, current level, and what type of help you need.
+          else
+            | For offers, describe your expertise, expected outcomes, and any preparation learners should complete.
+        .form-actions
+          button.btn.btn-primary(type="submit")= submitLabel
+          a.btn.btn-secondary(href="/skills") Cancel
