@@ -1,0 +1,32 @@
+extends /layouts/base
+
+block content
+  section.section
+    .shell.form-shell
+      .section-heading.reveal
+        span.section-tag Profile settings
+        h1 Edit your public profile
+        p Refine your short bio, headline, location, avatar initial, and how much of your profile others can see.
+      form.form-card.reveal(action="/profile/edit?_method=PUT" method="POST")
+        .form-grid
+          .form-group
+            label(for="headline") Headline
+            input#headline(type="text" name="headline" maxlength="180" value=profile.headline || '')
+          .form-group
+            label(for="location") Location
+            input#location(type="text" name="location" maxlength="180" value=profile.location || '')
+          .form-group
+            label(for="avatar_initial") Avatar initial
+            input#avatar_initial(type="text" name="avatar_initial" maxlength="2" value=profile.avatar_initial || '')
+          .form-group
+            label(for="privacy_level") Privacy level
+            select#privacy_level(name="privacy_level")
+              option(value="PUBLIC" selected=profile.privacy_level === 'PUBLIC') PUBLIC
+              option(value="REGISTERED" selected=profile.privacy_level === 'REGISTERED') REGISTERED
+              option(value="PRIVATE" selected=profile.privacy_level === 'PRIVATE') PRIVATE
+        .form-group
+          label(for="bio") Bio
+          textarea#bio(name="bio" rows="7")= profile.bio || ''
+        .form-actions
+          button.btn.btn-primary(type="submit") Save profile
+          a.btn.btn-secondary(href="/profile/dashboard") Cancel
