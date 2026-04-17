@@ -1,0 +1,42 @@
+mixin statusBadge(status)
+  - const statusClass = status ? status.toLowerCase().replace(/\s+/g, '-') : 'default';
+  span(class=`status-badge status-${statusClass}`)= status
+
+mixin starRating(value, count)
+  - const numericValue = Number(value || 0);
+  - const roundedValue = Math.round(numericValue);
+  .star-rating
+    .star-rating__stars
+      each idx in [1, 2, 3, 4, 5]
+        span(class=idx <= roundedValue ? 'filled' : '') ★
+    span.star-rating__copy #{numericValue.toFixed(1)} · #{count || 0} ratings
+
+mixin skillCard(skill)
+  article.skill-card.reveal(data-tilt)
+    .skill-card__before
+    .skill-card__top
+      .skill-card__status-group
+        if skill.skill_type
+          +statusBadge(skill.skill_type)
+        if skill.mode
+          span.mode-pill= String(skill.mode).replace('_', ' ')
+        if skill.verified_badge
+          span.verified-badge Verified
+      if skill.category_name
+        span.skill-card__category= skill.category_name
+    h3.skill-card__title
+      a(href=`/skills/${skill.skill_id}`)= skill.title
+    p.skill-card__description= skill.description && skill.description.length > 152 ? `${skill.description.slice(0, 152)}…` : skill.description
+    if skill.tags && skill.tags.length
+      .tag-list
+        each tag in skill.tags
+          span.tag-chip= tag
+    .skill-card__footer
+      .owner-mini
+        .avatar-circle= skill.avatar_initial || ((skill.owner_display_name || 'U').charAt(0).toUpperCase())
+        .owner-mini__copy
+          strong= skill.owner_display_name || 'Community member'
+          span= skill.headline || 'Sharing practical skills with the community'
+      +starRating(skill.avg_rating || 0, skill.rating_count || 0)
+    if skill.org_name
+      .org-chip Posted by #{skill.org_name}
