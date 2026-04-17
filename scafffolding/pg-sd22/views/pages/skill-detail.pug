@@ -1,0 +1,121 @@
+extends /layouts/base
+include /partials/skill-card
+
+block content
+  section.section
+    .shell.skill-detail-layout
+      .skill-detail-main
+        .detail-hero.reveal
+          .detail-hero__meta
+            span.section-tag Skill listing
+            .hero-meta
+              span(class=`status-badge status-${String(skill.skill_type).toLowerCase()}`)= skill.skill_type
+              span.mode-pill= String(skill.mode).replace('_', ' ')
+              if skill.verified_badge
+                span.verified-badge Verified badge
+              if skill.org_name
+                span.org-chip= skill.org_name
+          h1= skill.title
+          p= skill.description
+          .tag-list
+            if skill.category_name
+              span.tag-chip= skill.category_name
+            each tag in skill.tags
+              span.tag-chip= tag
+        .panel.reveal
+          .panel__heading
+            h2 Skill owner
+            a.btn.btn-ghost(href=`/profile/${skill.owner_user_id}`) View profile
+          .owner-panel
+            .avatar-circle.avatar-circle--xl= skill.avatar_initial || skill.owner_display_name.charAt(0).toUpperCase()
+            .owner-panel__copy
+              h3= skill.owner_display_name
+              p= skill.headline || 'No headline added yet.'
+              .hero-meta
+                span= skill.location || 'Location not shared'
+                if skill.email_verified
+                  span.verified-badge Email verified
+                span #{Number(skill.avg_rating || 0).toFixed(1)} / 5 from #{skill.rating_count} ratings
+        .panel.reveal
+          .panel__heading
+            h2 Ratings and comments
+          if reviews.length
+            .review-list
+              each review in reviews
+                article.review-card
+                  .review-card__head
+                    strong= review.rater_name
+                    span= `${review.score}/5`
+                  p= review.comment || 'No comment provided.'
+                  small= new Date(review.created_at).toLocaleString()
+          else
+            .empty-state
+              h3 No reviews yet
+              p Ratings appear after completed exchanges.
+        if relatedSkills.length
+          .panel.reveal
+            .panel__heading
+              h2 Related skill listings
+            .skills-grid.skills-grid--compact
+              each item in relatedSkills
+                +skillCard(item)
+      aside.skill-detail-side
+        if currentUser
+          if canRequest
+            .panel.reveal
+              .panel__heading
+                h2 Send exchange request
+              form(action=`/exchanges/request/${skill.skill_id}` method="POST")
+                .form-group
+                  label(for="message") Message
+                  textarea#message(name="message" rows="5" required)
+                .form-group
+                  label(for="mode") Preferred mode
+                  select#mode(name="mode")
+                    option(value="ONLINE") ONLINE
+                    option(value="IN_PERSON") IN PERSON
+                    option(value="BOTH") BOTH
+                .form-group
+                  label(for="proposed_slot_1") Proposed slot 1
+                  input#proposed_slot_1(type="datetime-local" name="proposed_slot_1")
+                .form-group
+                  label(for="proposed_slot_2") Proposed slot 2
+                  input#proposed_slot_2(type="datetime-local" name="proposed_slot_2")
+                button.btn.btn-primary.btn-block(type="submit") Send request
+          else if isOwner
+            .panel.reveal
+              .panel__heading
+                h2 Manage listing
+              .stack-actions
+                a.btn.btn-primary(href=`/skills/${skill.skill_id}/edit`) Edit listing
+                form(action=`/skills/${skill.skill_id}/deactivate?_method=PUT` method="POST")
+                  button.btn.btn-danger.btn-block(type="submit") Archive listing
+                a.btn.btn-secondary(href=`/skills/${skill.skill_id}/test`) Take skill test
+          .panel.reveal
+            .panel__heading
+              h2 Skill verification test
+            p Pass the timed quiz with at least 70% to unlock a verified badge on this listing and your profile.
+            p.form-help Attempts used this week: #{attemptsThisWeek} / 3
+            a.btn.btn-secondary.btn-block(href=`/skills/${skill.skill_id}/test`) Start test
+          if !isOwner
+            .panel.reveal
+              .panel__heading
+                h2 Report listing
+              form(action=`/skills/${skill.skill_id}/report` method="POST")
+                .form-group
+                  label(for="reason") Reason
+                  input#reason(type="text" name="reason" required)
+                .form-group
+                  label(for="notes") Notes
+                  textarea#notes(name="notes" rows="4")
+                .form-group
+                  label(for="evidence_url") Evidence URL
+                  input#evidence_url(type="url" name="evidence_url")
+                button.btn.btn-danger.btn-block(type="submit") Submit report
+        else
+          .panel.reveal
+            .panel__heading
+              h2 Join to connect
+            p Sign in or create an account to request this skill, rate exchanges, unlock badges, and build a trusted profile.
+            a.btn.btn-primary.btn-block(href="/auth/register") Create account
+            a.btn.btn-secondary.btn-block(href="/auth/login") Log in
