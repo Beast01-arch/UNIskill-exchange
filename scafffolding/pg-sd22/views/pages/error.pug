@@ -1,0 +1,12 @@
+extends /layouts/base
+
+block content
+  section.section.error-shell
+    .shell
+      .error-card.reveal
+        span.section-tag Server error
+        h1 UniSkill Exchange hit an unexpected problem.
+        p= errorMessage || 'Something went wrong while processing your request.'
+        .form-actions
+          a.btn.btn-primary(href="/") Go home
+          a.btn.btn-secondary(href="/profile/dashboard") Back to dashboard
