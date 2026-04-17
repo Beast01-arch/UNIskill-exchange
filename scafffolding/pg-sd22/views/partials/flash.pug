@@ -1,0 +1,18 @@
+if flash && (flash.success.length || flash.error.length || flash.warning.length || flash.info.length)
+  .flash-stack
+    each msg in flash.success
+      .flash.flash-success.reveal
+        span.flash__icon ✓
+        p!= msg
+    each msg in flash.error
+      .flash.flash-error.reveal
+        span.flash__icon !
+        p!= msg
+    each msg in flash.warning
+      .flash.flash-warning.reveal
+        span.flash__icon •
+        p!= msg
+    each msg in flash.info
+      .flash.flash-info.reveal
+        span.flash__icon i
+        p!= msg
