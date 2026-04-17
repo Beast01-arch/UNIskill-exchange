@@ -1,0 +1,141 @@
+extends /layouts/base
+include /partials/skill-card
+
+block content
+  section.hero
+    .shell.hero__grid
+      .hero__content
+        span.eyebrow.reveal Free skill exchange for people and organisations
+        h1.reveal Learn faster by exchanging what you know.
+        p.hero__lede.reveal UniSkill Exchange helps individuals, schools, clubs, and companies share offered skills, publish learning requests, schedule sessions, build reputation, and grow verified trust without payments.
+        .hero__actions.reveal
+          a.btn.btn-primary(href="/auth/register") Create a free account
+          a.btn.btn-secondary(href="/skills") Explore skills
+        .hero__stats.reveal
+          .stat-card
+            strong(data-counter=stats.users_count)= stats.users_count
+            span Active users
+          .stat-card
+            strong(data-counter=stats.skills_count)= stats.skills_count
+            span Skill listings
+          .stat-card
+            strong(data-counter=stats.exchanges_count)= stats.exchanges_count
+            span Exchanges tracked
+          .stat-card
+            strong(data-counter=stats.organisations_count)= stats.organisations_count
+            span Organisations
+      .hero__visual.reveal
+        .orb.orb-a
+        .orb.orb-b
+        .orb.orb-c
+        .floating-tag.tag-a JavaScript mentoring
+        .floating-tag.tag-b Language exchange
+        .floating-tag.tag-c CV feedback
+        .floating-tag.tag-d Guitar basics
+        .mock-card(data-tilt)
+          .mock-card__bar
+            span.dot
+            span.dot
+            span.dot
+          .mock-card__content
+            .mock-stat
+              span.label Trust score
+              strong 4.9/5
+            .mock-columns
+              .mock-panel
+                h4 Offer
+                ul
+                  li React debugging
+                  li Interview coaching
+                  li Beginner piano
+              .mock-panel
+                h4 Request
+                ul
+                  li Python data analysis
+                  li Public speaking
+                  li Event photography
+            .mock-timeline
+              .timeline-step
+                span.timeline-step__dot
+                p Request sent
+              .timeline-step
+                span.timeline-step__dot
+                p Slot confirmed
+              .timeline-step
+                span.timeline-step__dot
+                p Rated and verified
+
+  section.ticker-wrap
+    .ticker
+      .ticker__track
+        each story in storyTicker
+          span= story
+        each story in storyTicker
+          span= story
+
+  section.section
+    .shell
+      .section-heading.reveal
+        span.section-tag Platform flow
+        h2 A full exchange journey from listing to reputation.
+      .steps-grid
+        .step-card.reveal
+          span.step-card__index 01
+          h3 Create your profile
+          p Register with secure credentials, verify your email, and shape a trustworthy public profile with headline, bio, location, avatar, and privacy settings.
+        .step-card.reveal
+          span.step-card__index 02
+          h3 Publish offers or requests
+          p Add skills you can teach or goals you want to learn. Organise them by category, tags, delivery mode, and organisation workspace.
+        .step-card.reveal
+          span.step-card__index 03
+          h3 Schedule the exchange
+          p Request a session with a message and two proposed slots. Providers accept, reject, or confirm a custom plan with notes and links.
+        .step-card.reveal
+          span.step-card__index 04
+          h3 Complete, rate, and verify
+          p Mark finished sessions, leave ratings, improve reputation, and unlock verified badges through platform skill tests.
+
+  section.section.section-alt
+    .shell
+      .section-heading.reveal
+        span.section-tag Why UniSkill Exchange
+        h2 Built for communities, not transactions.
+      .feature-grid
+        .feature-card.reveal
+          h3 Zero-payment model
+          p The platform is designed around reciprocal learning and community value rather than checkout flows or commissions.
+        .feature-card.reveal
+          h3 Trust and moderation
+          p Ratings, notifications, reports, moderation cases, and verification badges help keep exchanges safer and more transparent.
+        .feature-card.reveal
+          h3 Organisation workspace
+          p Clubs, schools, departments, charities, and companies can invite members and publish organisation-scoped skill opportunities.
+        .feature-card.reveal
+          h3 Responsive and animated
+          p A dark, polished interface with reveal motion, custom cursor, counters, ticker, tilt, and hover effects creates a more engaging product demo.
+
+  section.section
+    .shell
+      .section-heading.reveal
+        span.section-tag Fresh from the network
+        h2 Latest active skill listings
+      if latestSkills.length
+        .skills-grid
+          each skill in latestSkills
+            +skillCard(skill)
+      else
+        .empty-state.reveal
+          h3 No skills published yet
+          p Be the first to share something valuable with the community.
+          a.btn.btn-primary(href="/auth/register") Start now
+
+  section.section.cta-band
+    .shell.cta-band__inner.reveal
+      .cta-band__copy
+        span.section-tag Sprint 2 deliverable
+        h2 Ready to exchange knowledge with no payment barrier?
+        p Launch a credible university-grade platform experience with profiles, scheduling, moderation, organisation workspaces, and verified skill trust.
+      .cta-band__actions
+        a.btn.btn-primary(href="/auth/register") Join UniSkill Exchange
+        a.btn.btn-secondary(href="/skills") View all skills
