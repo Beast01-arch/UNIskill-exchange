@@ -1,0 +1,130 @@
+extends /layouts/base
+
+block content
+  section.section
+    .shell
+      .section-heading.reveal
+        span.section-tag Exchange workflow
+        h1 Manage sent and received requests
+        p Review pending requests, confirm schedules, mark completion, and rate finished exchanges.
+      .exchange-columns
+        .panel.reveal
+          .panel__heading
+            h2 Sent requests
+            span.panel__meta= sentExchanges.length
+          if sentExchanges.length
+            .exchange-list
+              each exchange in sentExchanges
+                article.exchange-card
+                  .exchange-card__header
+                    div
+                      h3= exchange.skill_title
+                      p= `Provider: ${exchange.counterpart_name}`
+                    span(class=`status-badge status-${String(exchange.status).toLowerCase()}`)= exchange.status
+                  p= exchange.message
+                  if exchange.confirmed_start_at
+                    p.muted= `Scheduled: ${new Date(exchange.confirmed_start_at).toLocaleString()} → ${new Date(exchange.confirmed_end_at).toLocaleString()}`
+                  if exchange.schedule_notes
+                    p.muted= exchange.schedule_notes
+                  if exchange.status === 'ACCEPTED'
+                    form(action=`/exchanges/${exchange.exchange_id}/complete?_method=PUT` method="POST")
+                      button.btn.btn-secondary(type="submit") Mark completed
+                  if exchange.status === 'COMPLETED' && !Number(exchange.has_my_rating)
+                    form.rating-form(action=`/exchanges/${exchange.exchange_id}/rate` method="POST")
+                      .form-group
+                        label Score
+                        select(name="score" required)
+                          option(value="") Select
+                          option(value="1") 1
+                          option(value="2") 2
+                          option(value="3") 3
+                          option(value="4") 4
+                          option(value="5") 5
+                      .form-group
+                        label Comment
+                        textarea(name="comment" rows="3")
+                      button.btn.btn-primary(type="submit") Submit rating
+          else
+            .empty-state
+              h3 No sent requests
+              p Requests you create from skill listings will appear here.
+        .panel.reveal
+          .panel__heading
+            h2 Received requests
+            span.panel__meta= receivedExchanges.length
+          if receivedExchanges.length
+            .exchange-list
+              each exchange in receivedExchanges
+                article.exchange-card
+                  .exchange-card__header
+                    div
+                      h3= exchange.skill_title
+                      p= `Requester: ${exchange.counterpart_name}`
+                    span(class=`status-badge status-${String(exchange.status).toLowerCase()}`)= exchange.status
+                  p= exchange.message
+                  if exchange.proposed_slot_1 || exchange.proposed_slot_2
+                    ul.slot-list
+                      if exchange.proposed_slot_1
+                        li= `Slot 1: ${new Date(exchange.proposed_slot_1).toLocaleString()}`
+                      if exchange.proposed_slot_2
+                        li= `Slot 2: ${new Date(exchange.proposed_slot_2).toLocaleString()}`
+                  if exchange.status === 'PENDING'
+                    form.inline-form-grid(action=`/exchanges/${exchange.exchange_id}/accept?_method=PUT` method="POST")
+                      .form-group
+                        label Select slot
+                        select(name="selected_slot")
+                          option(value="") Choose a slot
+                          if exchange.proposed_slot_1
+                            option(value="slot_1") Proposed slot 1
+                          if exchange.proposed_slot_2
+                            option(value="slot_2") Proposed slot 2
+                      .form-group
+                        label Custom start
+                        input(type="datetime-local" name="custom_start")
+                      .form-group
+                        label Custom end
+                        input(type="datetime-local" name="custom_end")
+                      .form-group
+                        label Mode
+                        select(name="mode")
+                          option(value="ONLINE" selected=exchange.mode === 'ONLINE') ONLINE
+                          option(value="IN_PERSON" selected=exchange.mode === 'IN_PERSON') IN PERSON
+                          option(value="BOTH" selected=exchange.mode === 'BOTH') BOTH
+                      .form-group
+                        label Location or URL
+                        input(type="text" name="location_url")
+                      .form-group
+                        label Notes
+                        textarea(name="notes" rows="3")
+                      button.btn.btn-primary(type="submit") Accept request
+                    form.inline-form-grid(action=`/exchanges/${exchange.exchange_id}/reject?_method=PUT` method="POST")
+                      .form-group
+                        label Rejection reason
+                        input(type="text" name="reason")
+                      button.btn.btn-danger(type="submit") Reject request
+                  if exchange.confirmed_start_at
+                    p.muted= `Scheduled: ${new Date(exchange.confirmed_start_at).toLocaleString()} → ${new Date(exchange.confirmed_end_at).toLocaleString()}`
+                  if exchange.schedule_notes
+                    p.muted= exchange.schedule_notes
+                  if exchange.status === 'ACCEPTED'
+                    form(action=`/exchanges/${exchange.exchange_id}/complete?_method=PUT` method="POST")
+                      button.btn.btn-secondary(type="submit") Mark completed
+                  if exchange.status === 'COMPLETED' && !Number(exchange.has_my_rating)
+                    form.rating-form(action=`/exchanges/${exchange.exchange_id}/rate` method="POST")
+                      .form-group
+                        label Score
+                        select(name="score" required)
+                          option(value="") Select
+                          option(value="1") 1
+                          option(value="2") 2
+                          option(value="3") 3
+                          option(value="4") 4
+                          option(value="5") 5
+                      .form-group
+                        label Comment
+                        textarea(name="comment" rows="3")
+                      button.btn.btn-primary(type="submit") Submit rating
+          else
+            .empty-state
+              h3 No received requests
+              p Incoming requests for your offered skills will appear here.
