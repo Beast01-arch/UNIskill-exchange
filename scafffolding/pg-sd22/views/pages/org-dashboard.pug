@@ -1,0 +1,85 @@
+extends /layouts/base
+
+block content
+  section.section
+    .shell
+      .section-heading.reveal
+        span.section-tag Organisation workspace
+        h1 Create teams and invite members
+        p Set up organisation workspaces for clubs, schools, companies, and communities. Publish shared skills and manage member roles.
+      .org-grid
+        .panel.reveal
+          .panel__heading
+            h2 Create organisation
+          form.form-card.form-card--flat(action="/org" method="POST")
+            .form-group
+              label(for="org_name") Organisation name
+              input#org_name(type="text" name="org_name" required)
+            .form-group
+              label(for="domain") Domain
+              input#domain(type="text" name="domain")
+            .form-group
+              label(for="visibility") Visibility
+              select#visibility(name="visibility")
+                option(value="PRIVATE") PRIVATE
+                option(value="PUBLIC") PUBLIC
+                option(value="INVITE_ONLY") INVITE_ONLY
+            button.btn.btn-primary(type="submit") Create workspace
+        .panel.reveal
+          .panel__heading
+            h2 Your organisations
+            span.panel__meta= organisations.length
+          if organisations.length
+            .org-list
+              each org in organisations
+                article.org-card
+                  .org-card__head
+                    div
+                      h3= org.org_name
+                      p= `${org.role} · ${org.member_count} members`
+                    span.mode-pill= org.visibility
+                  if org.domain
+                    p.muted= org.domain
+                  .org-card__sections
+                    .org-subpanel
+                      h4 Invite member
+                      form(action=`/org/${org.org_id}/invite` method="POST")
+                        .form-group
+                          label Email
+                          input(type="email" name="email" required)
+                        .form-group
+                          label Role
+                          select(name="role")
+                            option(value="MEMBER") MEMBER
+                            option(value="ADMIN") ADMIN
+                            option(value="OWNER") OWNER
+                        button.btn.btn-secondary(type="submit") Generate invite
+                    .org-subpanel
+                      h4 Members
+                      if org.members.length
+                        ul.meta-list
+                          each member in org.members
+                            li
+                              strong= member.display_name
+                              span= `${member.role} · ${member.email}`
+                      else
+                        p.muted No active members yet.
+                    .org-subpanel
+                      h4 Invite links
+                      if org.invites.length
+                        each invite in org.invites
+                          .invite-item
+                            p= `${invite.email} · ${invite.role}`
+                            small
+                              if invite.used_at
+                                | Used
+                              else
+                                | Expires #{new Date(invite.expires_at).toLocaleString()}
+                            if !invite.used_at
+                              a.btn.btn-ghost(href=`/org/join/${invite.token}`) Demo join link
+                      else
+                        p.muted No invites generated yet.
+          else
+            .empty-state
+              h3 No workspaces yet
+              p Create one to start posting organisation-scoped skills and inviting teammates.
