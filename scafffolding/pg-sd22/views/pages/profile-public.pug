@@ -1,0 +1,81 @@
+extends /layouts/base
+include /partials/skill-card
+
+block content
+  section.section
+    .shell.profile-public
+      .profile-banner.reveal
+        .avatar-circle.avatar-circle--xl= profile.avatar_initial || profile.display_name.charAt(0).toUpperCase()
+        .profile-banner__copy
+          span.section-tag Public profile
+          h1= profile.display_name
+          p= profile.headline || 'Community member on UniSkill Exchange'
+          .hero-meta
+            span= profile.location || 'Location not shared'
+            if profile.email_verified
+              span.verified-badge Email verified
+            if profile.verified_badges
+              span.verified-badge #{profile.verified_badges} verified badge#{profile.verified_badges === 1 ? '' : 's'}
+        .profile-banner__stats
+          .overview-card
+            span.label Rating
+            strong #{Number(profile.avg_rating || 0).toFixed(1)} / 5
+            small #{profile.rating_count} ratings
+          .overview-card
+            span.label Privacy
+            strong= profile.privacy_level
+            small Visibility level
+      if canViewFull
+        .profile-layout
+          .profile-layout__main
+            .panel.reveal
+              .panel__heading
+                h2 About
+              p= profile.bio || 'No biography has been added yet.'
+            .panel.reveal
+              .panel__heading
+                h2 Active skill listings
+              if skills.length
+                .skills-grid.skills-grid--compact
+                  each skill in skills
+                    +skillCard(skill)
+              else
+                .empty-state
+                  h3 No active listings
+                  p This user has not published any active skills yet.
+            .panel.reveal
+              .panel__heading
+                h2 Recent reviews
+              if reviews.length
+                .review-list
+                  each review in reviews
+                    article.review-card
+                      .review-card__head
+                        strong= review.rater_name
+                        span= `${review.score}/5`
+                      p= review.comment || 'No comment provided.'
+                      small= new Date(review.created_at).toLocaleString()
+              else
+                .empty-state
+                  h3 No reviews yet
+                  p Completed exchanges and ratings will appear here.
+          aside.profile-layout__side
+            if currentUser && !isSelf
+              .panel.reveal
+                .panel__heading
+                  h2 Report profile
+                form(action=`/profile/${profile.user_id}/report` method="POST")
+                  .form-group
+                    label(for="reason") Reason
+                    input#reason(type="text" name="reason" required)
+                  .form-group
+                    label(for="notes") Notes
+                    textarea#notes(name="notes" rows="4")
+                  .form-group
+                    label(for="evidence_url") Evidence URL
+                    input#evidence_url(type="url" name="evidence_url")
+                  button.btn.btn-danger(type="submit") Submit report
+      else
+        .empty-state.reveal
+          h2 This profile is not publicly visible
+          p The owner has restricted visibility. Sign in or request access where appropriate.
