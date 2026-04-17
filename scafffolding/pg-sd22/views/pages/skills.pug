@@ -1,0 +1,53 @@
+extends /layouts/base
+include /partials/skill-card
+
+block content
+  section.section
+    .shell
+      .section-heading.reveal
+        span.section-tag Discover opportunities
+        h1 Search offers and learning requests
+        p Filter by keyword, category, listing type, and sort order to find the right exchange opportunity.
+      form.filter-bar.reveal(action="/skills" method="GET")
+        .filter-bar__grid
+          .form-group
+            label(for="q") Keyword
+            input#q(type="text" name="q" value=filters.q || '' placeholder="Search by title, tag, owner, or description")
+          .form-group
+            label(for="category") Category
+            select#category(name="category")
+              option(value="") All categories
+              each category in categories
+                option(value=category.category_id selected=filters.category === category.category_id)= category.name
+          .form-group
+            label(for="type") Type
+            select#type(name="type")
+              option(value="") All types
+              option(value="OFFER" selected=filters.type === 'OFFER') OFFER
+              option(value="REQUEST" selected=filters.type === 'REQUEST') REQUEST
+          .form-group
+            label(for="sort") Sort by
+            select#sort(name="sort")
+              option(value="recent" selected=filters.sort === 'recent') Most recent
+              option(value="rating" selected=filters.sort === 'rating') Highest rated
+        .filter-bar__actions
+          button.btn.btn-primary(type="submit") Apply filters
+          a.btn.btn-secondary(href="/skills") Reset
+      if skills.length
+        .skills-grid
+          each skill in skills
+            +skillCard(skill)
+        .pagination.reveal
+          if pagination.page > 1
+            a.btn.btn-secondary(href=`/skills?q=${encodeURIComponent(filters.q || '')}&category=${encodeURIComponent(filters.category || '')}&type=${encodeURIComponent(filters.type || '')}&sort=${encodeURIComponent(filters.sort || 'recent')}&page=${pagination.page - 1}`) Previous
+          span.pagination__meta Page #{pagination.page} of #{pagination.pageCount}
+          if pagination.page < pagination.pageCount
+            a.btn.btn-secondary(href=`/skills?q=${encodeURIComponent(filters.q || '')}&category=${encodeURIComponent(filters.category || '')}&type=${encodeURIComponent(filters.type || '')}&sort=${encodeURIComponent(filters.sort || 'recent')}&page=${pagination.page + 1}`) Next
+      else
+        .empty-state.reveal
+          h2 No matching skills found
+          p Refine your filters or publish a new listing to get the network started.
+          if currentUser
+            a.btn.btn-primary(href="/skills/new") Add a skill
+          else
+            a.btn.btn-primary(href="/auth/register") Join the platform
