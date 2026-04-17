@@ -1,0 +1,32 @@
+header.site-header(data-nav)
+  .shell.site-header__inner
+    a.brand(href="/")
+      span.brand__mark UX
+      span.brand__copy
+        strong UniSkill Exchange
+        small Free peer-to-peer learning network
+
+    button.nav-toggle(type="button" aria-label="Toggle navigation" data-burger)
+      span
+      span
+      span
+
+    nav.site-nav(data-menu)
+      a(class=currentPath === '/' ? 'active' : '' href="/") Home
+      a(class=currentPath.startsWith('/skills') ? 'active' : '' href="/skills") Browse skills
+      if currentUser
+        a(class=currentPath.startsWith('/profile') ? 'active' : '' href="/profile/dashboard") Dashboard
+        a(class=currentPath.startsWith('/exchanges') ? 'active' : '' href="/exchanges")
+          | Exchanges
+          if unreadNotificationCount
+            span.nav-badge= unreadNotificationCount
+        a(class=currentPath.startsWith('/org') ? 'active' : '' href="/org") Organisations
+        if currentUser.is_admin
+          a(class=currentPath.startsWith('/admin') ? 'active' : '' href="/admin") Admin
+        .nav-user
+          span.nav-user__name= currentUser.display_name
+          form(action="/auth/logout" method="POST")
+            button.btn.btn-ghost(type="submit") Logout
+      else
+        a(class=currentPath.startsWith('/auth/login') ? 'active' : '' href="/auth/login") Log in
+        a.btn.btn-primary(class=currentPath.startsWith('/auth/register') ? 'active' : '' href="/auth/register") Get started
