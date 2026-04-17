@@ -1,0 +1,31 @@
+extends /layouts/base
+
+block content
+  section.section
+    .shell.skill-test-layout
+      .panel.reveal
+        .panel__heading
+          div
+            span.section-tag Verification test
+            h1= skill.title
+          .timer-badge(data-timer-seconds=timerSeconds) 05:00
+        p Reach at least 70% within the time limit to unlock a verified badge for this skill listing and strengthen your profile trust.
+        p.form-help Attempts used in the last 7 days: #{attemptsThisWeek} / #{attemptLimit}
+        if attemptsThisWeek >= attemptLimit
+          .empty-state
+            h2 Weekly limit reached
+            p You have already used all available attempts for this skill in the last 7 days.
+            a.btn.btn-secondary(href=`/skills/${skill.skill_id}`) Back to listing
+        else
+          form.form-card.form-card--flat.skill-test-form(action=`/skills/${skill.skill_id}/test` method="POST" data-timer-form)
+            each question, index in questions
+              .question-card
+                h3 #{index + 1}. #{question.prompt}
+                .question-options
+                  each option in question.options
+                    label.option-row
+                      input(type="radio" name=question.id value=option required)
+                      span= option
+            .form-actions
+              button.btn.btn-primary(type="submit") Submit test
+              a.btn.btn-secondary(href=`/skills/${skill.skill_id}`) Cancel
