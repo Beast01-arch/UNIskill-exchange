@@ -30,15 +30,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "npm"
 
       - name: Install dependencies
+        working-directory: pg-sd22
         run: npm install
 
       - name: Import database schema
         run: mysql -h 127.0.0.1 -uroot -ppassword sd2-db < pg-sd22/sd2-db.sql
 
       - name: Start app and smoke test
+        working-directory: pg-sd22
         env:
           DB_CONTAINER: 127.0.0.1
           DB_PORT: 3306
@@ -47,7 +48,7 @@ jobs:
           MYSQL_DATABASE: sd2-db
           SESSION_SECRET: ci-secret
         run: |
-          node pg-sd22/index.js &
+          node index.js &
           sleep 5
           curl -f http://localhost:3000/ || exit 1
           curl -f http://localhost:3000/skills || exit 1
