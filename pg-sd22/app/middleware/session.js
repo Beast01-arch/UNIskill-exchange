@@ -9,7 +9,7 @@ async function sessionValidator(req, res, next) {
     }
 
     const rows = await db.query(
-      `SELECT user_id, display_name, email, account_type, role, email_verified, is_suspended
+      `SELECT user_id, display_name, email, account_type, email_verified, is_suspended, is_admin
        FROM users
        WHERE user_id = ?
        LIMIT 1`,
@@ -47,8 +47,8 @@ async function sessionValidator(req, res, next) {
       display_name: liveUser.display_name,
       email: liveUser.email,
       account_type: liveUser.account_type,
-      role: liveUser.role,
       email_verified: Number(liveUser.email_verified) === 1,
+      is_admin: Number(liveUser.is_admin) === 1,
     };
 
     return next();

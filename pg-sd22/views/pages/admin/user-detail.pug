@@ -1,0 +1,138 @@
+extends /layouts/base
+
+block content
+  .shell
+    .admin-header
+      h1.page-title User: #{user.display_name}
+      nav.admin-nav
+        a(href="/admin") Overview
+        a(href="/admin/users" class="active") Users
+        a(href="/admin/skills") Skills
+        a(href="/admin/exchanges") Exchanges
+        a(href="/admin/reports") Reports
+
+    if flash && flash.success && flash.success.length
+      .alert.alert--success= flash.success[0]
+    if flash && flash.error && flash.error.length
+      .alert.alert--error= flash.error[0]
+    if flash && flash.warning && flash.warning.length
+      .alert.alert--warning!= flash.warning[0]
+
+    .admin-detail-grid
+      .panel
+        .panel__heading
+          h2.panel__title Account Info
+        .detail-list
+          .detail-row
+            span.detail-label User ID
+            span.detail-value= user.user_id
+          .detail-row
+            span.detail-label Email
+            span.detail-value= user.email
+          .detail-row
+            span.detail-label Account Type
+            span.detail-value= user.account_type
+          .detail-row
+            span.detail-label Email Verified
+            span.detail-value= user.email_verified ? 'Yes' : 'No'
+          .detail-row
+            span.detail-label Admin
+            span.detail-value= user.is_admin ? 'Yes' : 'No'
+          .detail-row
+            span.detail-label Status
+            span.detail-value
+              if user.is_suspended
+                span.badge.badge--danger Suspended
+              else
+                span.badge.badge--success Active
+          .detail-row
+            span.detail-label Joined
+            span.detail-value= new Date(user.created_at).toLocaleString()
+          .detail-row
+            span.detail-label Last Login
+            span.detail-value= user.last_login_at ? new Date(user.last_login_at).toLocaleString() : 'Never'
+          if user.headline
+            .detail-row
+              span.detail-label Headline
+              span.detail-value= user.headline
+          if user.location
+            .detail-row
+              span.detail-label Location
+              span.detail-value= user.location
+          .detail-row
+            span.detail-label Avg Rating
+            span.detail-value= `${Number(user.avg_rating || 0).toFixed(1)} (${user.rating_count || 0} ratings)`
+
+      .panel
+        .panel__heading
+          h2.panel__title Admin Actions
+
+        .action-stack
+          h3 Account Control
+          if user.is_suspended
+            form(action=`/admin/users/${user.user_id}/unsuspend` method="POST")
+              button.btn.btn-success(type="submit") ✓ Unsuspend User
+          else
+            form(action=`/admin/users/${user.user_id}/suspend` method="POST")
+              button.btn.btn-danger(type="submit" onclick="return confirm('Are you sure you want to suspend this user?')") ✗ Suspend User
+
+          hr.divider
+
+          h3 Impersonate
+          p.help-text Log in as this user to see what they see. You can return via /admin/stop-impersonating.
+          form(action=`/admin/users/${user.user_id}/impersonate` method="POST")
+            button.btn.btn-warning(type="submit" onclick="return confirm('Impersonate this user?')") 👤 Log in as #{user.display_name}
+
+    .panel
+      .panel__heading
+        h2.panel__title Skills (#{skills.length})
+      if skills.length
+        table.admin-table
+          thead
+            tr
+              th Title
+              th Type
+              th Status
+              th Created
+              th Actions
+          tbody
+            each skill in skills
+              tr
+                td= skill.title
+                td= skill.skill_type
+                td
+                  if skill.is_active
+                    span.badge.badge--success Active
+                  else
+                    span.badge.badge--danger Removed
+                td= new Date(skill.created_at).toLocaleDateString()
+                td.action-cell
+                  a.btn.btn-sm.btn-secondary(href=`/skills/${skill.skill_id}`) View
+                  if skill.is_active
+                    form(action=`/admin/skills/${skill.skill_id}/delete` method="POST" style="display:inline")
+                      button.btn.btn-sm.btn-danger(type="submit" onclick="return confirm('Remove this skill?')") Remove
+                  else
+                    form(action=`/admin/skills/${skill.skill_id}/restore` method="POST" style="display:inline")
+                      button.btn.btn-sm.btn-success(type="submit") Restore
+      else
+        p.empty-text No skills posted.
+
+    .panel
+      .panel__heading
+        h2.panel__title Recent Exchanges (#{exchanges.length})
+      if exchanges.length
+        table.admin-table
+          thead
+            tr
+              th Skill
+              th Status
+              th Date
+          tbody
+            each ex in exchanges
+              tr
+                td= ex.skill_title
+                td
+                  span(class=`badge badge--${ex.status === 'COMPLETED' ? 'success' : ex.status === 'PENDING' ? 'warning' : 'danger'}`)= ex.status
+                td= new Date(ex.created_at).toLocaleDateString()
+      else
+        p.empty-text No exchanges.

@@ -1,0 +1,69 @@
+extends /layouts/base
+
+block content
+  .shell
+    .admin-header
+      h1.page-title Moderation Reports
+      nav.admin-nav
+        a(href="/admin") Overview
+        a(href="/admin/users") Users
+        a(href="/admin/skills") Skills
+        a(href="/admin/exchanges") Exchanges
+        a(href="/admin/reports" class="active") Reports
+
+    if flash && flash.success && flash.success.length
+      .alert.alert--success= flash.success[0]
+    if flash && flash.error && flash.error.length
+      .alert.alert--error= flash.error[0]
+
+    each report in reports
+      .panel(class=report.status === 'OPEN' ? 'panel--urgent' : '')
+        .panel__heading
+          h3.panel__title
+            span(class=`badge badge--${report.status === 'OPEN' ? 'danger' : 'success'}`)= report.status
+            |  #{report.target_type} Report — #{report.target_user_name || report.target_skill_title || 'Unknown target'}
+          span.panel__meta= new Date(report.created_at).toLocaleString()
+
+        .detail-list
+          .detail-row
+            span.detail-label Reported by
+            span.detail-value= report.reporter_name
+          .detail-row
+            span.detail-label Target
+            span.detail-value= report.target_type === 'USER' ? report.target_user_name : report.target_skill_title
+          .detail-row
+            span.detail-label Reason
+            span.detail-value= report.reason
+
+        if report.status === 'RESOLVED'
+          .detail-list
+            .detail-row
+              span.detail-label Action Taken
+              span.detail-value= report.resolved_action
+            if report.admin_notes
+              .detail-row
+                span.detail-label Admin Notes
+                span.detail-value= report.admin_notes
+        else
+          form(action=`/admin/reports/${report.report_id}/review?_method=PUT` method="POST" class="report-form")
+            .form-group
+              label.form-label Action
+              .custom-select-wrapper
+                input(type="hidden" name="action" class="custom-select-value" value="NONE")
+                .custom-select-trigger
+                  span.custom-select-label No action — dismiss report
+                  span.custom-select-arrow ▾
+                .custom-select-options
+                  .custom-select-option(data-value="NONE") No action — dismiss report
+                  if report.target_type === 'SKILL'
+                    .custom-select-option(data-value="REMOVE_LISTING") Remove skill listing
+                  if report.target_type === 'USER'
+                    .custom-select-option(data-value="SUSPEND_USER") Suspend user
+            .form-group
+              label.form-label Admin Notes
+              textarea.form-textarea(name="admin_notes" rows="2" placeholder="Optional notes...")
+            button.btn.btn-primary(type="submit") Resolve Report
+
+    if !reports.length
+      .empty-state
+        p No reports found.

@@ -1,0 +1,56 @@
+extends /layouts/base
+
+block content
+  .shell
+    .admin-header
+      h1.page-title Manage Skills
+      nav.admin-nav
+        a(href="/admin") Overview
+        a(href="/admin/users") Users
+        a(href="/admin/skills" class="active") Skills
+        a(href="/admin/exchanges") Exchanges
+        a(href="/admin/reports") Reports
+
+    if flash && flash.success && flash.success.length
+      .alert.alert--success= flash.success[0]
+    if flash && flash.error && flash.error.length
+      .alert.alert--error= flash.error[0]
+
+    .panel
+      .panel__heading
+        h2.panel__title All Skills (#{skills.length})
+        form.search-form(action="/admin/skills" method="GET")
+          input.form-input(type="text" name="search" placeholder="Search title or owner..." value=search)
+          button.btn.btn-primary(type="submit") Search
+
+      table.admin-table
+        thead
+          tr
+            th Title
+            th Owner
+            th Category
+            th Type
+            th Status
+            th Created
+            th Actions
+        tbody
+          each skill in skills
+            tr
+              td= skill.title
+              td= skill.owner_name
+              td= skill.category_name || '—'
+              td= skill.skill_type
+              td
+                if skill.is_active
+                  span.badge.badge--success Active
+                else
+                  span.badge.badge--danger Removed
+              td= new Date(skill.created_at).toLocaleDateString()
+              td.action-cell
+                a.btn.btn-sm.btn-secondary(href=`/skills/${skill.skill_id}`) View
+                if skill.is_active
+                  form(action=`/admin/skills/${skill.skill_id}/delete` method="POST" style="display:inline")
+                    button.btn.btn-sm.btn-danger(type="submit" onclick="return confirm('Remove this skill?')") Remove
+                else
+                  form(action=`/admin/skills/${skill.skill_id}/restore` method="POST" style="display:inline")
+                    button.btn.btn-sm.btn-success(type="submit") Restore

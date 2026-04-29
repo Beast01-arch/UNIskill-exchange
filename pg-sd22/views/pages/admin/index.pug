@@ -1,0 +1,71 @@
+extends /layouts/base
+
+block content
+  .shell
+    .admin-header
+      h1.page-title Admin Dashboard
+      nav.admin-nav
+        a(href="/admin" class=currentPath === '/admin' ? 'active' : '') Overview
+        a(href="/admin/users" class=currentPath.startsWith('/admin/users') ? 'active' : '') Users
+        a(href="/admin/skills" class=currentPath.startsWith('/admin/skills') ? 'active' : '') Skills
+        a(href="/admin/exchanges" class=currentPath.startsWith('/admin/exchanges') ? 'active' : '') Exchanges
+        a(href="/admin/reports" class=currentPath.startsWith('/admin/reports') ? 'active' : '') Reports
+
+    if flash && flash.success && flash.success.length
+      .alert.alert--success= flash.success[0]
+    if flash && flash.error && flash.error.length
+      .alert.alert--error= flash.error[0]
+    if flash && flash.warning && flash.warning.length
+      .alert.alert--warning= flash.warning[0]
+
+    .stat-grid
+      .stat-card
+        .stat-card__value= stats.total_users
+        .stat-card__label Total Users
+      .stat-card
+        .stat-card__value= stats.suspended_users
+        .stat-card__label Suspended
+      .stat-card
+        .stat-card__value= stats.active_skills
+        .stat-card__label Active Skills
+      .stat-card
+        .stat-card__value= stats.total_exchanges
+        .stat-card__label Total Exchanges
+      .stat-card
+        .stat-card__value= stats.pending_exchanges
+        .stat-card__label Pending Exchanges
+      .stat-card
+        .stat-card__value= stats.completed_exchanges
+        .stat-card__label Completed Exchanges
+      .stat-card
+        .stat-card__value= stats.open_reports
+        .stat-card__label Open Reports
+      .stat-card
+        .stat-card__value= stats.admin_users
+        .stat-card__label Admins
+
+    .panel
+      .panel__heading
+        h2.panel__title Recent Users
+        a.btn.btn-secondary(href="/admin/users") View all
+      table.admin-table
+        thead
+          tr
+            th Name
+            th Email
+            th Status
+            th Joined
+        tbody
+          each user in recentUsers
+            tr
+              td
+                a(href=`/admin/users/${user.user_id}`)= user.display_name
+              td= user.email
+              td
+                if user.is_suspended
+                  span.badge.badge--danger Suspended
+                else if user.is_admin
+                  span.badge.badge--info Admin
+                else
+                  span.badge.badge--success Active
+              td= new Date(user.created_at).toLocaleDateString()

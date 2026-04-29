@@ -1,0 +1,43 @@
+extends /layouts/base
+
+block content
+  .shell
+    .admin-header
+      h1.page-title Manage Exchanges
+      nav.admin-nav
+        a(href="/admin") Overview
+        a(href="/admin/users") Users
+        a(href="/admin/skills") Skills
+        a(href="/admin/exchanges" class="active") Exchanges
+        a(href="/admin/reports") Reports
+
+    if flash && flash.success && flash.success.length
+      .alert.alert--success= flash.success[0]
+    if flash && flash.error && flash.error.length
+      .alert.alert--error= flash.error[0]
+
+    .panel
+      .panel__heading
+        h2.panel__title All Exchanges (#{exchanges.length})
+
+      table.admin-table
+        thead
+          tr
+            th Skill
+            th Requester
+            th Provider
+            th Status
+            th Date
+            th Actions
+        tbody
+          each ex in exchanges
+            tr
+              td= ex.skill_title
+              td= ex.requester_name
+              td= ex.provider_name
+              td
+                span(class=`badge badge--${ex.status === 'COMPLETED' ? 'success' : ex.status === 'PENDING' ? 'warning' : 'danger'}`)= ex.status
+              td= new Date(ex.created_at).toLocaleDateString()
+              td.action-cell
+                form(action=`/admin/exchanges/${ex.exchange_id}/delete?_method=POST` method="POST" style="display:inline")
+                  button.btn.btn-sm.btn-danger(type="submit" onclick="return confirm('Delete this exchange?')") Delete

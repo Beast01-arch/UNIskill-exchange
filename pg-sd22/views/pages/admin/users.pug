@@ -1,0 +1,55 @@
+extends /layouts/base
+
+block content
+  .shell
+    .admin-header
+      h1.page-title Manage Users
+      nav.admin-nav
+        a(href="/admin") Overview
+        a(href="/admin/users" class="active") Users
+        a(href="/admin/skills") Skills
+        a(href="/admin/exchanges") Exchanges
+        a(href="/admin/reports") Reports
+
+    if flash && flash.success && flash.success.length
+      .alert.alert--success= flash.success[0]
+    if flash && flash.error && flash.error.length
+      .alert.alert--error= flash.error[0]
+
+    .panel
+      .panel__heading
+        h2.panel__title All Users (#{users.length})
+        form.search-form(action="/admin/users" method="GET")
+          input.form-input(type="text" name="search" placeholder="Search name or email..." value=search)
+          button.btn.btn-primary(type="submit") Search
+
+      table.admin-table
+        thead
+          tr
+            th Name
+            th Email
+            th Role
+            th Status
+            th Last Login
+            th Actions
+        tbody
+          each user in users
+            tr
+              td
+                a(href=`/admin/users/${user.user_id}`)= user.display_name
+              td= user.email
+              td= user.is_admin ? 'Admin' : 'User'
+              td
+                if user.is_suspended
+                  span.badge.badge--danger Suspended
+                else
+                  span.badge.badge--success Active
+              td= user.last_login_at ? new Date(user.last_login_at).toLocaleDateString() : 'Never'
+              td.action-cell
+                a.btn.btn-sm.btn-secondary(href=`/admin/users/${user.user_id}`) View
+                if user.is_suspended
+                  form(action=`/admin/users/${user.user_id}/unsuspend` method="POST" style="display:inline")
+                    button.btn.btn-sm.btn-success(type="submit") Unsuspend
+                else
+                  form(action=`/admin/users/${user.user_id}/suspend` method="POST" style="display:inline")
+                    button.btn.btn-sm.btn-danger(type="submit" onclick="return confirm('Suspend this user?')") Suspend

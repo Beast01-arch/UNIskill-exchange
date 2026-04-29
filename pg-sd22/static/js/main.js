@@ -130,4 +130,31 @@
       });
     });
   }
+
+  // Custom select dropdowns
+  document.querySelectorAll('.custom-select-wrapper').forEach((wrapper) => {
+    const trigger = wrapper.querySelector('.custom-select-trigger');
+    const options = wrapper.querySelectorAll('.custom-select-option');
+    const label = wrapper.querySelector('.custom-select-label');
+    const input = wrapper.querySelector('.custom-select-value');
+
+    trigger.addEventListener('click', () => {
+      wrapper.classList.toggle('is-open');
+    });
+
+    options.forEach((option) => {
+      option.addEventListener('click', () => {
+        input.value = option.dataset.value;
+        label.textContent = option.textContent;
+        options.forEach(o => o.classList.remove('is-selected'));
+        option.classList.add('is-selected');
+        wrapper.classList.remove('is-open');
+      });
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!wrapper.contains(e.target)) wrapper.classList.remove('is-open');
+    });
+  });
+
 })();
