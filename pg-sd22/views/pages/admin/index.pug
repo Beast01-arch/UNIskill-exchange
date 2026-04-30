@@ -10,7 +10,7 @@ block content
         a(href="/admin/skills" class=currentPath.startsWith('/admin/skills') ? 'active' : '') Skills
         a(href="/admin/exchanges" class=currentPath.startsWith('/admin/exchanges') ? 'active' : '') Exchanges
         a(href="/admin/reports" class=currentPath.startsWith('/admin/reports') ? 'active' : '') Reports
-
+        a(href="/admin/organisations" class=currentPath.startsWith('/admin/organisations') ? 'active' : '') Organisations
     if flash && flash.success && flash.success.length
       .alert.alert--success= flash.success[0]
     if flash && flash.error && flash.error.length

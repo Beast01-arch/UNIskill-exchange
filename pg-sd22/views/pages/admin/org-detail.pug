@@ -1,0 +1,147 @@
+extends /layouts/base
+
+block content
+  .shell
+    .admin-header
+      h1.page-title Org: #{org.org_name}
+      nav.admin-nav
+        a(href="/admin") Overview
+        a(href="/admin/users") Users
+        a(href="/admin/skills") Skills
+        a(href="/admin/exchanges") Exchanges
+        a(href="/admin/organisations" class="active") Organisations
+        a(href="/admin/reports") Reports
+
+    if flash && flash.success && flash.success.length
+      .alert.alert--success= flash.success[0]
+    if flash && flash.error && flash.error.length
+      .alert.alert--error= flash.error[0]
+
+    .admin-detail-grid
+      .panel
+        .panel__heading
+          h2.panel__title Organisation Info
+        .detail-list
+          .detail-row
+            span.detail-label Org ID
+            span.detail-value= org.org_id
+          .detail-row
+            span.detail-label Name
+            span.detail-value= org.org_name
+          .detail-row
+            span.detail-label Domain
+            span.detail-value= org.domain || 'Not set'
+          .detail-row
+            span.detail-label Visibility
+            span.detail-value
+              span(class=`badge badge--${org.visibility === 'PUBLIC' ? 'success' : 'warning'}`)= org.visibility
+          .detail-row
+            span.detail-label Created
+            span.detail-value= new Date(org.created_at).toLocaleString()
+
+      .panel
+        .panel__heading
+          h2.panel__title Admin Actions
+        .action-stack
+          h3 Change Visibility
+          form(action=`/admin/organisations/${org.org_id}/visibility` method="POST")
+            select.form-select(name="visibility" style="margin-bottom:8px")
+              option(value="PUBLIC" selected=org.visibility === 'PUBLIC') PUBLIC
+              option(value="PRIVATE" selected=org.visibility === 'PRIVATE') PRIVATE
+            button.btn.btn-primary(type="submit") Update Visibility
+          hr.divider
+          h3 Delete Organisation
+          p.help-text This will permanently delete the organisation and all its memberships.
+          form(action=`/admin/organisations/${org.org_id}/delete` method="POST")
+            button.btn.btn-danger(type="submit" onclick="return confirm('Permanently delete this organisation?')") ✗ Delete Organisation
+
+    .panel
+      .panel__heading
+        h2.panel__title Members (#{members.length})
+      if members.length
+        table.admin-table
+          thead
+            tr
+              th Name
+              th Email
+              th Role
+              th Status
+              th Joined
+              th Actions
+          tbody
+            each m in members
+              tr
+                td
+                  a(href=`/admin/users/${m.user_id}`)= m.display_name
+                td= m.email
+                td
+                  span(class=`badge badge--${m.role === 'OWNER' ? 'info' : m.role === 'ADMIN' ? 'warning' : 'success'}`)= m.role
+                td
+                  if m.is_active
+                    span.badge.badge--success Active
+                  else
+                    span.badge.badge--danger Inactive
+                td= new Date(m.joined_at).toLocaleDateString()
+                td.action-cell
+                  if m.role !== 'OWNER'
+                    form(action=`/admin/organisations/${org.org_id}/members/${m.user_id}/remove` method="POST" style="display:inline")
+                      button.btn.btn-sm.btn-danger(type="submit" onclick="return confirm('Remove this member?')") Remove
+                  else
+                    span.empty-text Owner
+      else
+        p.empty-text No members.
+
+    .panel
+      .panel__heading
+        h2.panel__title Skills (#{skills.length})
+      if skills.length
+        table.admin-table
+          thead
+            tr
+              th Title
+              th Type
+              th Status
+              th Created
+              th Actions
+          tbody
+            each s in skills
+              tr
+                td= s.title
+                td= s.skill_type
+                td
+                  if s.is_active
+                    span.badge.badge--success Active
+                  else
+                    span.badge.badge--danger Removed
+                td= new Date(s.created_at).toLocaleDateString()
+                td.action-cell
+                  a.btn.btn-sm.btn-secondary(href=`/skills/${s.skill_id}`) View
+      else
+        p.empty-text No skills posted under this organisation.
+
+    .panel
+      .panel__heading
+        h2.panel__title Invites (#{invites.length})
+      if invites.length
+        table.admin-table
+          thead
+            tr
+              th Email
+              th Role
+              th Expires
+              th Status
+          tbody
+            each inv in invites
+              tr
+                td= inv.email
+                td= inv.role
+                td= new Date(inv.expires_at).toLocaleDateString()
+                td
+                  if inv.used_at
+                    span.badge.badge--success Used
+                  else if new Date(inv.expires_at) < new Date()
+                    span.badge.badge--danger Expired
+                  else
+                    span.badge.badge--warning Pending
+      else
+        p.empty-text No invites.

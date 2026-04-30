@@ -1,0 +1,51 @@
+extends /layouts/base
+
+block content
+  .shell
+    .admin-header
+      h1.page-title Manage Organisations
+      nav.admin-nav
+        a(href="/admin") Overview
+        a(href="/admin/users") Users
+        a(href="/admin/skills") Skills
+        a(href="/admin/exchanges") Exchanges
+        a(href="/admin/organisations" class="active") Organisations
+        a(href="/admin/reports") Reports
+
+    if flash && flash.success && flash.success.length
+      .alert.alert--success= flash.success[0]
+    if flash && flash.error && flash.error.length
+      .alert.alert--error= flash.error[0]
+
+    .panel
+      .panel__heading
+        h2.panel__title All Organisations (#{orgs.length})
+        form.search-form(action="/admin/organisations" method="GET")
+          input.form-input(type="text" name="search" placeholder="Search name or domain..." value=search)
+          button.btn.btn-primary(type="submit") Search
+
+      table.admin-table
+        thead
+          tr
+            th Name
+            th Domain
+            th Visibility
+            th Members
+            th Skills
+            th Created
+            th Actions
+        tbody
+          each org in orgs
+            tr
+              td
+                a(href=`/admin/organisations/${org.org_id}`)= org.org_name
+              td= org.domain || '—'
+              td
+                span(class=`badge badge--${org.visibility === 'PUBLIC' ? 'success' : 'warning'}`)= org.visibility
+              td= org.member_count
+              td= org.skill_count
+              td= new Date(org.created_at).toLocaleDateString()
+              td.action-cell
+                a.btn.btn-sm.btn-secondary(href=`/admin/organisations/${org.org_id}`) View
+                form(action=`/admin/organisations/${org.org_id}/delete` method="POST" style="display:inline")
+                  button.btn.btn-sm.btn-danger(type="submit" onclick="return confirm('Delete this organisation and all its data?')") Delete

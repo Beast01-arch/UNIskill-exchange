@@ -330,3 +330,102 @@ router.put("/reports/:reportId/review", requireAuth, requireAdmin, async (req, r
 });
 
 module.exports = router;
+
+// GET /admin/organisations
+router.get("/organisations", requireAuth, requireAdmin, async (req, res, next) => {
+  try {
+    const search = (req.query.search || "").trim();
+    const orgs = search
+      ? await db.query(
+          `SELECT o.org_id, o.org_name, o.domain, o.visibility, o.created_at,
+                  COUNT(DISTINCT m.user_id) AS member_count,
+                  COUNT(DISTINCT s.skill_id) AS skill_count
+           FROM organisations o
+           LEFT JOIN memberships m ON m.org_id = o.org_id AND m.is_active = 1
+           LEFT JOIN skills s ON s.org_id = o.org_id AND s.is_active = 1
+           WHERE o.org_name LIKE ? OR o.domain LIKE ?
+           GROUP BY o.org_id ORDER BY o.created_at DESC`,
+          [`%${search}%`, `%${search}%`]
+        )
+      : await db.query(
+          `SELECT o.org_id, o.org_name, o.domain, o.visibility, o.created_at,
+                  COUNT(DISTINCT m.user_id) AS member_count,
+                  COUNT(DISTINCT s.skill_id) AS skill_count
+           FROM organisations o
+           LEFT JOIN memberships m ON m.org_id = o.org_id AND m.is_active = 1
+           LEFT JOIN skills s ON s.org_id = o.org_id AND s.is_active = 1
+           GROUP BY o.org_id ORDER BY o.created_at DESC`
+        );
+
+    res.render("pages/admin/organisations", {
+      title: "Manage Organisations", pageClass: "page-admin",
+      orgs, search, unreadNotificationCount: 0,
+    });
+  } catch (err) { console.error(err); next(err); }
+});
+
+// GET /admin/organisations/:orgId
+router.get("/organisations/:orgId", requireAuth, requireAdmin, async (req, res, next) => {
+  try {
+    const rows = await db.query(
+      `SELECT * FROM organisations WHERE org_id = ? LIMIT 1`,
+      [req.params.orgId]
+    );
+    if (!rows.length) { req.flash("error", "Organisation not found."); return res.redirect("/admin/organisations"); }
+
+    const org = rows[0];
+    const members = await db.query(
+      `SELECT m.membership_id, m.role, m.is_active, m.joined_at,
+              u.user_id, u.display_name, u.email
+       FROM memberships m JOIN users u ON u.user_id = m.user_id
+       WHERE m.org_id = ? ORDER BY m.role, m.joined_at`,
+      [org.org_id]
+    );
+    const skills = await db.query(
+      `SELECT skill_id, title, skill_type, is_active, created_at
+       FROM skills WHERE org_id = ? ORDER BY created_at DESC`,
+      [org.org_id]
+    );
+    const invites = await db.query(
+      `SELECT invite_id, email, role, expires_at, used_at FROM invites
+       WHERE org_id = ? ORDER BY expires_at DESC`,
+      [org.org_id]
+    );
+
+    res.render("pages/admin/org-detail", {
+      title: `Org: ${org.org_name}`, pageClass: "page-admin",
+      org, members, skills, invites, unreadNotificationCount: 0,
+    });
+  } catch (err) { console.error(err); next(err); }
+});
+
+// POST /admin/organisations/:orgId/delete
+router.post("/organisations/:orgId/delete", requireAuth, requireAdmin, async (req, res, next) => {
+  try {
+    const rows = await db.query("SELECT org_id, org_name FROM organisations WHERE org_id = ? LIMIT 1", [req.params.orgId]);
+    if (!rows.length) { req.flash("error", "Organisation not found."); return res.redirect("/admin/organisations"); }
+    await db.query("DELETE FROM organisations WHERE org_id = ?", [req.params.orgId]);
+    req.flash("success", `Organisation deleted.`);
+    res.redirect("/admin/organisations");
+  } catch (err) { console.error(err); next(err); }
+});
+
+// POST /admin/organisations/:orgId/members/:userId/remove
+router.post("/organisations/:orgId/members/:userId/remove", requireAuth, requireAdmin, async (req, res, next) => {
+  try {
+    await db.query("DELETE FROM memberships WHERE org_id = ? AND user_id = ?", [req.params.orgId, req.params.userId]);
+    await createNotification(req.params.userId, "MODERATION_ACTION", "You have been removed from an organisation by an administrator.");
+    req.flash("success", "Member removed.");
+    res.redirect(`/admin/organisations/${req.params.orgId}`);
+  } catch (err) { console.error(err); next(err); }
+});
+
+// POST /admin/organisations/:orgId/visibility
+router.post("/organisations/:orgId/visibility", requireAuth, requireAdmin, async (req, res, next) => {
+  try {
+    const visibility = req.body.visibility === 'PUBLIC' ? 'PUBLIC' : 'PRIVATE';
+    await db.query("UPDATE organisations SET visibility = ? WHERE org_id = ?", [visibility, req.params.orgId]);
+    req.flash("success", `Visibility updated to ${visibility}.`);
+    res.redirect(`/admin/organisations/${req.params.orgId}`);
+  } catch (err) { console.error(err); next(err); }
+});
