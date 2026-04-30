@@ -26,6 +26,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 CREATE TABLE users (
   user_id CHAR(36) PRIMARY KEY,
   display_name VARCHAR(120) NOT NULL,
+  age TINYINT UNSIGNED NULL,
   email VARCHAR(255) NOT NULL UNIQUE,
   password_hash VARCHAR(255) NOT NULL,
   account_type ENUM('INDIVIDUAL','ORGANISATION_MEMBER') NOT NULL DEFAULT 'INDIVIDUAL',
@@ -257,3 +258,13 @@ INSERT INTO categories (category_id, name, parent_category_id) VALUES
   (UUID(), 'Cooking', NULL),
   (UUID(), 'Photography', NULL),
   (UUID(), 'Other', NULL);
+-- Seed ages for existing users
+UPDATE users SET age = 22 WHERE user_id = 'u-001';
+UPDATE users SET age = 25 WHERE user_id = 'u-002';
+UPDATE users SET age = 19 WHERE user_id = 'u-003';
+UPDATE users SET age = 31 WHERE user_id = 'u-004';
+UPDATE users SET age = 28 WHERE user_id = 'u-005';
+UPDATE users SET age = 24 WHERE user_id = 'u-006';
+UPDATE users SET age = 27 WHERE user_id = 'u-007';
+UPDATE users SET age = 35 WHERE user_id = 'u-008';
+UPDATE users SET age = 29 WHERE user_id = 'u-admin';
