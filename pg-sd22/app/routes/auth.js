@@ -41,6 +41,7 @@ router.get("/register", guestOnly, async (req, res, next) => {
       unreadNotificationCount: 0,
       values: {
         display_name: "",
+        age: "",
         email: "",
       },
     });
@@ -53,6 +54,7 @@ router.get("/register", guestOnly, async (req, res, next) => {
 router.post("/register", guestOnly, async (req, res, next) => {
   try {
     const displayName = (req.body.display_name || "").trim();
+    const age = parseInt(req.body.age || "0", 10);
     const email = (req.body.email || "").trim().toLowerCase();
     const password = req.body.password || "";
     const confirmPassword = req.body.confirm_password || "";
@@ -63,7 +65,17 @@ router.post("/register", guestOnly, async (req, res, next) => {
         title: "Create account",
         pageClass: "page-register",
         unreadNotificationCount: 0,
-        values: { display_name: displayName, email },
+        values: { display_name: displayName, age, email },
+      });
+    }
+
+    if (!age || age < 13 || age > 120) {
+      req.flash("error", "Please enter a valid age (13–120).");
+      return res.status(422).render("pages/register", {
+        title: "Create account",
+        pageClass: "page-register",
+        unreadNotificationCount: 0,
+        values: { display_name: displayName, age, email },
       });
     }
 
@@ -73,7 +85,7 @@ router.post("/register", guestOnly, async (req, res, next) => {
         title: "Create account",
         pageClass: "page-register",
         unreadNotificationCount: 0,
-        values: { display_name: displayName, email },
+        values: { display_name: displayName, age, email },
       });
     }
 
@@ -83,7 +95,7 @@ router.post("/register", guestOnly, async (req, res, next) => {
         title: "Create account",
         pageClass: "page-register",
         unreadNotificationCount: 0,
-        values: { display_name: displayName, email },
+        values: { display_name: displayName, age, email },
       });
     }
 
@@ -94,7 +106,7 @@ router.post("/register", guestOnly, async (req, res, next) => {
         title: "Create account",
         pageClass: "page-register",
         unreadNotificationCount: 0,
-        values: { display_name: displayName, email },
+        values: { display_name: displayName, age, email },
       });
     }
 
@@ -105,9 +117,9 @@ router.post("/register", guestOnly, async (req, res, next) => {
 
     await db.query(
       `INSERT INTO users
-       (user_id, display_name, email, password_hash, account_type, email_verified, is_suspended, is_admin)
-       VALUES (?, ?, ?, ?, 'INDIVIDUAL', 0, 0, ?)`,
-      [userId, displayName, email, passwordHash, isAdmin ? 1 : 0]
+       (user_id, display_name, age, email, password_hash, account_type, email_verified, is_suspended, is_admin)
+       VALUES (?, ?, ?, ?, ?, 'INDIVIDUAL', 0, 0, ?)`,
+      [userId, displayName, age, email, passwordHash, isAdmin ? 1 : 0]
     );
 
     await db.query(

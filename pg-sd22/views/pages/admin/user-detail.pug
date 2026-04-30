@@ -30,6 +30,9 @@ block content
             span.detail-label Email
             span.detail-value= user.email
           .detail-row
+            span.detail-label Age
+            span.detail-value= user.age || 'Not provided'
+          .detail-row
             span.detail-label Account Type
             span.detail-value= user.account_type
           .detail-row

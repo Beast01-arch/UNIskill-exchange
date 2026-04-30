@@ -18,6 +18,9 @@ block content
             label(for="display_name") Display name
             input#display_name(type="text" name="display_name" maxlength="120" required value=values && values.display_name ? values.display_name : '')
           .form-group
+            label(for="age") Age
+            input#age(type="number" name="age" min="13" max="120" required placeholder="Enter your age" value=values && values.age ? values.age : '')
+          .form-group
             label(for="email") Email address
             input#email(type="email" name="email" required value=values && values.email ? values.email : '')
           .form-group
