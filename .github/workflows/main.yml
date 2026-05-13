@@ -1,44 +1,66 @@
-name: UniSkill Exchange CI
+name: UniSkill Exchange CI/CD Pipeline
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+      - develop
+
   pull_request:
-    branches: [main]
+    branches:
+      - main
+      - develop
 
 jobs:
-  build:
+  build-and-test:
+    name: Build and Test Application
     runs-on: ubuntu-latest
 
     services:
-      db:
+      mysql:
         image: mysql:8.0
+
         env:
           MYSQL_ROOT_PASSWORD: password
           MYSQL_DATABASE: sd2-db
+
         ports:
           - 3306:3306
+
         options: >-
           --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -ppassword --silent"
-          --health-interval=5s
+          --health-interval=10s
           --health-timeout=5s
-          --health-retries=20
+          --health-retries=10
 
     steps:
-      - uses: actions/checkout@v4
+      # Checkout Repository
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      # Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-         node-version: "22"
+          node-version: 22
+          cache: npm
+          cache-dependency-path: pg-sd22/package-lock.json
 
-      - name: Install dependencies
+      # Install Dependencies
+      - name: Install Dependencies
         working-directory: pg-sd22
         run: npm install
 
-      - name: Import database schema
-        run: mysql -h 127.0.0.1 -uroot -ppassword sd2-db < pg-sd22/sd2-db.sql
+      # Import MySQL Database Schema
+      - name: Import Database Schema
+        run: |
+          mysql -h 127.0.0.1 \
+                -uroot \
+                -ppassword \
+                sd2-db < pg-sd22/sd2-db.sql
 
-      - name: Start app and smoke test
+      # Run Application and Perform Smoke Tests
+      - name: Start Application
         working-directory: pg-sd22
         env:
           DB_CONTAINER: 127.0.0.1
@@ -47,8 +69,19 @@ jobs:
           MYSQL_ROOT_PASSWORD: password
           MYSQL_DATABASE: sd2-db
           SESSION_SECRET: ci-secret
+          NODE_ENV: test
         run: |
           node index.js &
-          sleep 5
-          curl -f http://localhost:3000/ || exit 1
-          curl -f http://localhost:3000/skills || exit 1
+          sleep 10
+
+      # Smoke Test - Homepage
+      - name: Test Homepage Route
+        run: curl -f http://localhost:3000/
+
+      # Smoke Test - Skills Route
+      - name: Test Skills Route
+        run: curl -f http://localhost:3000/skills
+
+      # Success Message
+      - name: Build Success
+        run: echo "UniSkill Exchange CI Pipeline completed successfully."
