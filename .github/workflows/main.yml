@@ -1,4 +1,4 @@
-name: UniSkill Exchange CI/CD Pipeline
+name: UniSkill Exchange CI Pipeline
 
 on:
   push:
@@ -19,39 +19,30 @@ jobs:
     services:
       mysql:
         image: mysql:8.0
-
         env:
           MYSQL_ROOT_PASSWORD: password
           MYSQL_DATABASE: sd2-db
-
         ports:
           - 3306:3306
-
         options: >-
           --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -ppassword --silent"
           --health-interval=10s
           --health-timeout=5s
-          --health-retries=10
+          --health-retries=20
 
     steps:
-      # Checkout Repository
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: pg-sd22/package-lock.json
 
-      # Install Dependencies
       - name: Install Dependencies
         working-directory: pg-sd22
         run: npm install
 
-      # Import MySQL Database Schema
       - name: Import Database Schema
         run: |
           mysql -h 127.0.0.1 \
@@ -59,8 +50,7 @@ jobs:
                 -ppassword \
                 sd2-db < pg-sd22/sd2-db.sql
 
-      # Run Application and Perform Smoke Tests
-      - name: Start Application
+      - name: Start Application and Run Smoke Tests
         working-directory: pg-sd22
         env:
           DB_CONTAINER: 127.0.0.1
@@ -73,15 +63,8 @@ jobs:
         run: |
           node index.js &
           sleep 10
+          curl -f http://localhost:3000/ || exit 1
+          curl -f http://localhost:3000/skills || exit 1
 
-      # Smoke Test - Homepage
-      - name: Test Homepage Route
-        run: curl -f http://localhost:3000/
-
-      # Smoke Test - Skills Route
-      - name: Test Skills Route
-        run: curl -f http://localhost:3000/skills
-
-      # Success Message
       - name: Build Success
         run: echo "UniSkill Exchange CI Pipeline completed successfully."
