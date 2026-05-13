@@ -1,17 +1,21 @@
-name: UniSkill Exchange CI
+name: UniSkill Exchange CI Pipeline
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+
   pull_request:
-    branches: [main]
+    branches:
+      - main
 
 jobs:
-  build:
+  build-and-test:
+    name: Build and Test UniSkill Exchange
     runs-on: ubuntu-latest
 
     services:
-      db:
+      mysql:
         image: mysql:8.0
         env:
           MYSQL_ROOT_PASSWORD: password
@@ -20,35 +24,68 @@ jobs:
           - 3306:3306
         options: >-
           --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -ppassword --silent"
-          --health-interval=5s
+          --health-interval=10s
           --health-timeout=5s
           --health-retries=20
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Show Repository Structure
+        run: ls -R
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-         node-version: "22"
+          node-version: 22
 
-      - name: Install dependencies
-        working-directory: pg-sd22
-        run: npm install
+      - name: Detect Project Folder
+        run: |
+          PROJECT_DIR=$(dirname "$(find . -name package.json -type f -not -path "*/node_modules/*" | head -n 1)")
+          SQL_FILE=$(find . -name "sd2-db.sql" -type f | head -n 1)
 
-      - name: Import database schema
-        run: mysql -h 127.0.0.1 -uroot -ppassword sd2-db < pg-sd22/sd2-db.sql
+          echo "PROJECT_DIR=$PROJECT_DIR" >> $GITHUB_ENV
+          echo "SQL_FILE=$SQL_FILE" >> $GITHUB_ENV
 
-      - name: Start app and smoke test
-        working-directory: pg-sd22
+          echo "Project folder found at: $PROJECT_DIR"
+          echo "SQL file found at: $SQL_FILE"
+
+      - name: Install Dependencies
+        run: |
+          cd "$PROJECT_DIR"
+          npm install
+
+      - name: Import Database Schema
+        run: |
+          mysql -h 127.0.0.1 \
+                -uroot \
+                -ppassword \
+                sd2-db < "$SQL_FILE"
+
+      - name: Start Application and Run Smoke Tests
         env:
           DB_CONTAINER: 127.0.0.1
+          DB_HOST: 127.0.0.1
           DB_PORT: 3306
           MYSQL_ROOT_USER: root
           MYSQL_ROOT_PASSWORD: password
           MYSQL_DATABASE: sd2-db
           SESSION_SECRET: ci-secret
+          NODE_ENV: test
         run: |
-          node index.js &
-          sleep 5
+          cd "$PROJECT_DIR"
+
+          if npm run | grep -q "start"; then
+            npm start &
+          else
+            node index.js &
+          fi
+
+          sleep 10
+
           curl -f http://localhost:3000/ || exit 1
           curl -f http://localhost:3000/skills || exit 1
+
+      - name: CI Completed Successfully
+        run: echo "UniSkill Exchange CI Pipeline completed successfully."
